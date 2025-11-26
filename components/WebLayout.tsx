@@ -2,47 +2,53 @@ import { View, Text, TouchableOpacity, ScrollView, Pressable } from 'react-nativ
 import { Slot, useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export default function WebLayout() {
   const router = useRouter();
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { t } = useTranslation();
 
   const menuItems = [
-    { name: 'Dashboard', icon: 'home-outline', path: '/' },
-    { name: 'Devices', icon: 'hardware-chip-outline', path: '/devices' },
-    { name: 'PINs', icon: 'keypad-outline', path: '/pins' },
-    { name: 'QR Codes', icon: 'qr-code-outline', path: '/qrs' },
-    { name: 'Logs', icon: 'list-outline', path: '/logs' },
+    { name: 'dashboard', icon: 'home-outline', path: '/' },
+    { name: 'devices', icon: 'hardware-chip-outline', path: '/devices' },
+    { name: 'pins', icon: 'keypad-outline', path: '/pins' },
+    { name: 'qr_codes', icon: 'qr-code-outline', path: '/qrs' },
+    { name: 'logs', icon: 'list-outline', path: '/logs' },
   ];
 
   const getTitle = () => {
-    if (pathname === '/') return 'Dashboard';
-    if (pathname.startsWith('/devices')) return 'Device Management';
-    if (pathname.startsWith('/pins')) return 'PIN Management';
-    if (pathname.startsWith('/qrs')) return 'QR Code Management';
-    if (pathname.startsWith('/logs')) return 'Access Logs';
+    if (pathname === '/') return t('dashboard');
+    if (pathname.startsWith('/devices')) return t('devices');
+    if (pathname.startsWith('/pins')) return t('pins');
+    if (pathname.startsWith('/qrs')) return t('qr_codes');
+    if (pathname.startsWith('/logs')) return t('logs');
     return 'Access Control';
   };
 
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
+  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
-  const SidebarContent = ({ onClose }: { onClose?: () => void }) => (
+  const SidebarContent = ({ onClose, isMobile }: { onClose?: () => void; isMobile?: boolean }) => (
     <>
-      <View className="p-6 border-b border-gray-200 items-center flex-row gap-3">
-        <View className="w-8 h-8 bg-blue-600 rounded-lg items-center justify-center">
-            <Ionicons name="shield-checkmark" size={20} color="white" />
+      <View className="h-16 px-6 border-b border-indigo-400 flex-row items-center gap-3 bg-indigo-600">
+        <View className="w-8 h-8 bg-white rounded-lg items-center justify-center shadow-md">
+            <Ionicons name="shield-checkmark" size={20} color="#6366f1" />
         </View>
-        <Text className="text-xl font-bold text-gray-800">ACS Admin</Text>
+        {!isCollapsed && <Text className="text-xl font-bold text-white">ACS Admin</Text>}
       </View>
       
-      <ScrollView className="flex-1 py-4">
+      <ScrollView className="flex-1 py-4 bg-white">
         {menuItems.map((item) => {
           const isActive = pathname === item.path || (item.path !== '/' && pathname.startsWith(item.path));
           return (
             <TouchableOpacity
               key={item.name}
-              className={`flex-row items-center px-6 py-3 mb-1 mx-2 rounded-lg ${isActive ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+              className={`flex-row items-center px-6 py-3 mb-1 mx-2 rounded-lg ${isActive ? 'bg-indigo-600 shadow-md' : 'hover:bg-indigo-50'}`}
               onPress={() => {
                 router.push(item.path);
                 if (onClose) onClose();
@@ -51,50 +57,80 @@ export default function WebLayout() {
               <Ionicons 
                 name={item.icon as any} 
                 size={20} 
-                color={isActive ? '#2563eb' : '#64748b'} 
+                color={isActive ? '#ffffff' : '#6366f1'} 
               />
-              <Text className={`ml-3 font-medium ${isActive ? 'text-blue-600' : 'text-gray-600'}`}>
-                {item.name}
-              </Text>
+              {(!isCollapsed || isMobile) && (
+                <Text className={`ml-3 font-medium ${isActive ? 'text-white' : 'text-indigo-600'}`}>
+                  {t(item.name)}
+                </Text>
+              )}
             </TouchableOpacity>
           );
         })}
       </ScrollView>
 
-      <View className="p-4 border-t border-gray-200">
-          <TouchableOpacity className="flex-row items-center px-4 py-2">
-              <Ionicons name="log-out-outline" size={20} color="#64748b" />
-              <Text className="ml-3 text-gray-600 font-medium">Logout</Text>
-          </TouchableOpacity>
-      </View>
+      {/* Only show collapse button on desktop */}
+      {!isMobile && (
+        <View className="p-4 border-t border-indigo-200 bg-indigo-50">
+            <TouchableOpacity 
+              className="flex-row items-center px-4 py-2 bg-white rounded-lg shadow-sm border border-indigo-200"
+              onPress={toggleCollapse}
+            >
+                <Ionicons name={isCollapsed ? "chevron-forward-outline" : "chevron-back-outline"} size={20} color="#6366f1" />
+                {!isCollapsed && <Text className="ml-3 text-indigo-600 font-medium">Collapse</Text>}
+            </TouchableOpacity>
+        </View>
+      )}
     </>
   );
 
   return (
-    <View className="flex-1 flex-row bg-gray-100 h-screen">
+    <View className="flex-1 flex-row bg-gray-50 h-screen">
       {/* Fixed Sidebar for Large Screens */}
-      <View className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col h-full">
+      <View className={`hidden lg:flex ${isCollapsed ? 'w-20' : 'w-64'} bg-white shadow-xl flex-col h-full transition-all border-r border-gray-200`}>
         <SidebarContent />
       </View>
 
       {/* Main Content Area */}
       <View className="flex-1 flex-col h-screen overflow-hidden relative">
         {/* Header */}
-        <View className="h-16 bg-white border-b border-gray-200 flex-row items-center justify-between px-4 z-20">
+        <View className="h-16 bg-teal-600 shadow-lg flex-row items-center justify-between px-6 z-20">
           <View className="flex-row items-center gap-4">
             {/* Hamburger Menu - Hidden on Large Screens */}
             <TouchableOpacity onPress={toggleDrawer} className="lg:hidden">
-              <Ionicons name="menu" size={28} color="#1f2937" />
+              <Ionicons name="menu" size={28} color="#ffffff" />
             </TouchableOpacity>
-            <Text className="text-xl font-semibold text-gray-800">{getTitle()}</Text>
           </View>
-          <View className="flex-row items-center gap-4">
-               <TouchableOpacity>
-                  <Ionicons name="notifications-outline" size={24} color="#64748b" />
+          <View className="flex-row items-center gap-4 relative">
+               <LanguageSwitcher />
+               <TouchableOpacity 
+                  className="w-9 h-9 bg-orange-500 rounded-full items-center justify-center shadow-lg"
+                  onPress={() => setShowUserMenu(!showUserMenu)}
+               >
+                  <Text className="text-white font-bold text-sm">AD</Text>
                </TouchableOpacity>
-               <View className="w-8 h-8 bg-gray-200 rounded-full items-center justify-center">
-                  <Text className="text-gray-600 font-bold">AD</Text>
-               </View>
+               
+               {/* User Dropdown Menu */}
+               {showUserMenu && (
+                  <>
+                     <Pressable 
+                        className="fixed inset-0 z-30"
+                        onPress={() => setShowUserMenu(false)}
+                     />
+                     <View className="absolute top-12 right-0 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-40">
+                        <TouchableOpacity 
+                           className="flex-row items-center px-4 py-3 hover:bg-blue-50 rounded-lg"
+                           onPress={() => {
+                              setShowUserMenu(false);
+                              router.replace('/(auth)/login');
+                           }}
+                        >
+                           <Ionicons name="log-out-outline" size={20} color="#ef4444" />
+                           <Text className="ml-3 text-gray-700 font-medium">{t('logout')}</Text>
+                        </TouchableOpacity>
+                     </View>
+                  </>
+               )}
           </View>
         </View>
 
@@ -105,16 +141,19 @@ export default function WebLayout() {
                     className="absolute inset-0 bg-black/50 z-30 lg:hidden" 
                     onPress={() => setIsDrawerOpen(false)}
                 />
-                <View className="absolute top-0 left-0 bottom-0 w-64 bg-white border-r border-gray-200 flex-col z-40 h-full shadow-lg lg:hidden">
-                    <SidebarContent onClose={() => setIsDrawerOpen(false)} />
+                <View className="absolute top-0 left-0 bottom-0 w-64 bg-white flex-col z-40 h-full shadow-2xl lg:hidden">
+                    <SidebarContent onClose={() => setIsDrawerOpen(false)} isMobile={true} />
                 </View>
             </>
         )}
 
         {/* Page Content */}
-        <View className="flex-1 overflow-hidden bg-gray-50">
-            <View className="flex-1 overflow-auto p-0">
-                <Slot />
+        <View className="flex-1 overflow-hidden bg-gray-100">
+            <View className="flex-1 overflow-auto">
+                {/* Max-width container for large screens */}
+                <View className="w-full max-w-7xl mx-auto">
+                    <Slot />
+                </View>
             </View>
         </View>
       </View>

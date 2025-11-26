@@ -2,54 +2,61 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../ui/Card';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export function QuickActions() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const actions = [
     {
-      title: 'Add Device',
-      icon: 'add-circle-outline',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      titleKey: 'add_device',
+      icon: 'add-circle',
+      colors: ['#3b82f6', '#1d4ed8'],
       path: '/devices/add'
     },
     {
-      title: 'View Devices',
-      icon: 'hardware-chip-outline',
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
+      titleKey: 'view_devices',
+      icon: 'hardware-chip',
+      colors: ['#8b5cf6', '#6d28d9'],
       path: '/devices'
     },
     {
-      title: 'Manage PINs',
-      icon: 'keypad-outline',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      titleKey: 'manage_pins',
+      icon: 'keypad',
+      colors: ['#10b981', '#059669'],
       path: '/pins'
     },
     {
-      title: 'Manage QRs',
-      icon: 'qr-code-outline',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
+      titleKey: 'manage_qrs',
+      icon: 'qr-code',
+      colors: ['#f59e0b', '#d97706'],
       path: '/qrs'
     }
   ];
 
   return (
-    <Card title="Quick Actions">
+    <Card title={t('quick_actions')}>
       <View className="flex-row flex-wrap justify-between">
         {actions.map((action, index) => (
           <TouchableOpacity 
             key={index}
-            className={`${action.bgColor} p-4 rounded-xl w-[48%] mb-4 items-center justify-center shadow-sm active:opacity-70`}
+            className="w-[48%] mb-4"
             onPress={() => router.push(action.path as any)}
+            activeOpacity={0.8}
           >
-            <View className="mb-2 bg-white/50 p-2 rounded-full">
-              <Ionicons name={action.icon as any} size={24} className={action.color} color={action.color.replace('text-', '').replace('-600', '') === 'blue' ? '#2563eb' : action.color.replace('text-', '').replace('-600', '') === 'purple' ? '#9333ea' : action.color.replace('text-', '').replace('-600', '') === 'green' ? '#16a34a' : '#ea580c'} />
-            </View>
-            <Text className={`${action.color} font-semibold text-center`}>{action.title}</Text>
+            <LinearGradient
+              colors={action.colors}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ padding: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center', shadowColor: action.colors[0], shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 }}
+            >
+              <View className="mb-2 bg-white/20 p-3 rounded-full">
+                <Ionicons name={action.icon as any} size={28} color="white" />
+              </View>
+              <Text className="text-white font-semibold text-center text-sm">{t(action.titleKey)}</Text>
+            </LinearGradient>
           </TouchableOpacity>
         ))}
       </View>

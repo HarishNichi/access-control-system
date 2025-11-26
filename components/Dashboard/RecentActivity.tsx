@@ -1,5 +1,7 @@
 import { View, Text } from 'react-native';
 import { Card } from '../ui/Card';
+import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 
 const activities = [
   { id: '1', user: 'John Doe', device: 'Main Entrance', method: 'PIN', time: '10:30 AM', status: 'Success' },
@@ -9,17 +11,28 @@ const activities = [
 ];
 
 export function RecentActivity() {
+  const { t } = useTranslation();
+  
   return (
-    <Card title="Recent Activity" className="mb-6">
+    <Card title={t('recent_activity')} className="mb-6">
       {activities.map((item) => (
-        <View key={item.id} className="flex-row justify-between items-center py-3 border-b border-gray-100 last:border-0">
-          <View>
-            <Text className="font-medium text-gray-800">{item.user}</Text>
-            <Text className="text-xs text-gray-500">{item.device} • {item.method}</Text>
+        <View key={item.id} className={`flex-row justify-between items-center py-3 px-3 rounded-lg mb-2 ${item.status === 'Success' ? 'bg-green-50' : 'bg-red-50'}`}>
+          <View className="flex-row items-center flex-1">
+            <View className={`p-2 rounded-full mr-3 ${item.status === 'Success' ? 'bg-green-100' : 'bg-red-100'}`}>
+              <Ionicons 
+                name={item.status === 'Success' ? 'checkmark-circle' : 'close-circle'} 
+                size={20} 
+                color={item.status === 'Success' ? '#10b981' : '#ef4444'} 
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="font-semibold text-gray-800">{item.user}</Text>
+              <Text className="text-xs text-gray-500">{item.device} • {t(item.method.toLowerCase())}</Text>
+            </View>
           </View>
           <View className="items-end">
-            <Text className={`text-sm font-medium ${item.status === 'Success' ? 'text-green-600' : 'text-red-600'}`}>
-              {item.status}
+            <Text className={`text-sm font-bold ${item.status === 'Success' ? 'text-green-600' : 'text-red-600'}`}>
+              {t(item.status.toLowerCase())}
             </Text>
             <Text className="text-xs text-gray-400">{item.time}</Text>
           </View>
